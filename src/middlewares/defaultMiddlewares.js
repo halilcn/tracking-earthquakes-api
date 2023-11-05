@@ -1,5 +1,6 @@
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const responseHandler = require("../responseHandler");
 
 module.exports = (app) => {
   app.use(
@@ -12,4 +13,5 @@ module.exports = (app) => {
     })
   );
   app.use(bodyParser.json());
+  app.use(responseHandler);
 };

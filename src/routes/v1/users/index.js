@@ -4,6 +4,7 @@ const { BadRequestError } = require("../../../errors");
 const { isCustomError } = require("../../../utils");
 const User = require("./../../../models/user");
 const jwt = require("jsonwebtoken");
+const { StatusCodes } = require("http-status-codes");
 
 const router = express.Router();
 
@@ -49,7 +50,10 @@ router.post("/auth", async (req, res, next) => {
 
     const user = await handleGoogleAuth(credential);
 
-    res.status(200).json({ user });
+    res.success({
+      status: StatusCodes.CREATED,
+      user,
+    });
   } catch (err) {
     const error = isCustomError(err) ? err : new BadRequestError();
     next(error);
