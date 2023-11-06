@@ -1,4 +1,4 @@
-const { UnprocessableEntity } = require("./errors");
+const { UnprocessableEntityError } = require("./errors");
 
 module.exports = (validationFunc) => async (req, res, next) => {
   try {
@@ -9,7 +9,7 @@ module.exports = (validationFunc) => async (req, res, next) => {
     next();
   } catch (err) {
     if (err.isJoi) {
-      next(new UnprocessableEntity({ data: err.details }));
+      next(new UnprocessableEntityError({ data: err.details }));
     }
   }
 };
