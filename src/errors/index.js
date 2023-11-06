@@ -13,3 +13,11 @@ exports.BadRequestError = class BadRequestError extends CustomError {
     this.status = StatusCodes.BAD_REQUEST;
   }
 };
+
+exports.UnprocessableEntity = class UnprocessableEntity extends CustomError {
+  constructor({ message = "Fields are unprocessable", data }) {
+    super(message);
+    this.status = StatusCodes.UNPROCESSABLE_ENTITY;
+    this.data = data;
+  }
+};
