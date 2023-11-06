@@ -21,3 +21,10 @@ exports.UnprocessableEntity = class UnprocessableEntity extends CustomError {
     this.data = data;
   }
 };
+
+exports.UnauthorizedError = class UnauthorizedError extends CustomError {
+  constructor(message = "Unauthorized error") {
+    super(message);
+    this.status = StatusCodes.UNAUTHORIZED;
+  }
+};

@@ -10,7 +10,7 @@ const User = new mongoose.Schema(
     photo: String,
     token: {
       type: String,
-      default: "",
+      default: null,
     },
   },
   { timestamps: true }
