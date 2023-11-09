@@ -1,4 +1,3 @@
-const { isCustomError } = require("../utils");
 const { StatusCodes } = require("http-status-codes");
 
 const { OAuth2Client } = require("google-auth-library");
@@ -54,7 +53,6 @@ exports.auth = async (req, res, next) => {
       user,
     });
   } catch (err) {
-    const error = isCustomError(err) ? err : new BadRequestError();
-    next(error);
+    next(err);
   }
 };

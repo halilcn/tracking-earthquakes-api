@@ -1,13 +1,10 @@
-const { StatusCodes } = require("http-status-codes");
+const { BadRequestError } = require("./errors");
+const { isCustomError } = require("./utils");
 
-// TODO: it it is not custom error, dont return correct text?
-// TODO: it is broken?
 module.exports = (err, req, res, next) => {
-  const {
-    status = StatusCodes.BAD_REQUEST,
-    message = "An unknown error occurred",
-    data,
-  } = err;
+  const { status, message, data } = isCustomError(err)
+    ? err
+    : new BadRequestError("An unknown error occurred");
 
   res.status(status).json({
     message,
