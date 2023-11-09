@@ -52,3 +52,8 @@ exports.auth = async (req, res, next) => {
     user,
   });
 };
+
+exports.logout = async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { token: null });
+  res.success();
+};
