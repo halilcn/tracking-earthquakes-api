@@ -30,3 +30,10 @@ exports.UnauthorizedError = class UnauthorizedError extends CustomError {
     this.status = StatusCodes.UNAUTHORIZED;
   }
 };
+
+exports.NotFoundError = class NotFoundError extends CustomError {
+  constructor(message = "Not found error") {
+    super(message);
+    this.status = StatusCodes.NOT_FOUND;
+  }
+};
