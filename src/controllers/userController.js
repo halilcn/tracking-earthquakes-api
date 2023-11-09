@@ -43,16 +43,12 @@ const handleGoogleAuth = async (credential) => {
 };
 
 exports.auth = async (req, res, next) => {
-  try {
-    const { credential } = req.body;
+  const { credential } = req.body;
 
-    const user = await handleGoogleAuth(credential);
+  const user = await handleGoogleAuth(credential);
 
-    res.success({
-      status: StatusCodes.CREATED,
-      user,
-    });
-  } catch (err) {
-    next(err);
-  }
+  res.success({
+    status: StatusCodes.CREATED,
+    user,
+  });
 };
