@@ -15,4 +15,6 @@ router.post(
 
 router.post("/logout", authMiddleware, errorCatcher(userController.logout));
 
+router.get("/me", authMiddleware, errorCatcher(userController.me));
+
 module.exports = router;

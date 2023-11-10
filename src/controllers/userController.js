@@ -46,14 +46,36 @@ exports.auth = async (req, res, next) => {
   const { credential } = req.body;
 
   const user = await handleGoogleAuth(credential);
+  const { _id, email, name, photo, token } = user;
 
   res.success({
     status: StatusCodes.CREATED,
-    user,
+    user: {
+      _id,
+      email,
+      name,
+      photo,
+      token,
+    },
   });
 };
 
 exports.logout = async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, { token: null });
   res.success();
+};
+
+exports.me = async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  const { _id, email, name, photo, token } = user;
+
+  res.success({
+    user: {
+      _id,
+      email,
+      name,
+      photo,
+      token,
+    },
+  });
 };
