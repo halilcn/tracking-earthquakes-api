@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { DEFAULT_MESSAGE_LIMITS } = require("../constants");
+const { DEFAULT_MESSAGE_LIMITS, MESSAGE_TYPES } = require("../constants");
 
 const MessageLimit = new mongoose.Schema(
   {
@@ -12,12 +12,12 @@ const MessageLimit = new mongoose.Schema(
     generalMessageLimit: {
       type: Number,
       required: true,
-      default: DEFAULT_MESSAGE_LIMITS.general,
+      default: DEFAULT_MESSAGE_LIMITS[MESSAGE_TYPES.general],
     },
     earthquakeMessageLimit: {
       type: Number,
       required: true,
-      default: DEFAULT_MESSAGE_LIMITS.earthquake,
+      default: DEFAULT_MESSAGE_LIMITS[MESSAGE_TYPES.earthquake],
     },
   },
   { timestamps: true }
