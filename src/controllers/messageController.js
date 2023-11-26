@@ -1,11 +1,23 @@
 const { BadRequestError } = require("../errors");
 const Message = require("../models/message");
+const MessageLog = require("../models/messageLog");
 const messageService = require("../services/messageService");
 const messageLimitService = require("../services/messageLimitService");
 const MessageLimit = require("../models/messageLimit");
+const aiService = require("../services/aiService");
+const { MESSAGE_TYPES } = require("../constants");
+const {
+  getGeneralMessagePrompt,
+  getEarthquakeMessagePrompt,
+} = require("../utils/prompts");
+
+const getPromptByMessageType = (type) =>
+  ({
+    [MESSAGE_TYPES.general]: getGeneralMessagePrompt(),
+    [MESSAGE_TYPES.earthquake]: getEarthquakeMessagePrompt(),
+  }[type]);
 
 // TODO: need transaction
-// TODO: add logger
 exports.store = async (req, res, next) => {
   const userId = String(req.user._id);
   const { content, type } = req.body;
@@ -36,12 +48,22 @@ exports.store = async (req, res, next) => {
     messageLimits,
   });
 
-  // TODO: AI generator
-  const answerOfQuestion = "fake-ai-answer";
+  const answer = await aiService.askQuestion({
+    prompt: getPromptByMessageType(type),
+    question: content,
+  });
   const createdMessage = await messageService.createAiMessage({
     type,
-    content: answerOfQuestion,
-    user: req.user._id,
+    content: answer.choices[0].message.content,
+    user: userId,
+  });
+
+  await MessageLog.create({
+    user: userId,
+    message: createdMessage._id,
+    logs: {
+      openai: answer,
+    },
   });
 
   res.success({
