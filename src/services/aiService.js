@@ -7,7 +7,7 @@ const openai = new OpenAI({
 
 exports.askQuestion = async (payload) => {
   try {
-    const { prompt, question } = payload;
+    const { prompt, question, ...otherPayload } = payload;
 
     const answer = await openai.chat.completions.create({
       messages: [
@@ -16,6 +16,7 @@ exports.askQuestion = async (payload) => {
       ],
       model: "gpt-3.5-turbo",
       max_tokens: 256,
+      ...otherPayload,
     });
 
     return answer;

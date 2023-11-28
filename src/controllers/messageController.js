@@ -8,59 +8,74 @@ const aiService = require("../services/aiService");
 const { MESSAGE_TYPES } = require("../constants");
 const {
   getGeneralMessagePrompt,
-  getEarthquakeMessagePrompt,
+  getGeneralMessagePromptFunctions,
 } = require("../utils/prompts");
 
-const getPromptByMessageType = (type) =>
-  ({
-    [MESSAGE_TYPES.general]: getGeneralMessagePrompt(),
-    [MESSAGE_TYPES.earthquake]: getEarthquakeMessagePrompt(),
-  }[type]);
-
 // TODO: need transaction
-exports.store = async (req, res, next) => {
+exports.storeAiMessage = async (req, res, next) => {
   const userId = String(req.user._id);
-  const { content, type } = req.body;
+  const messageType = MESSAGE_TYPES.general;
+  const { content } = req.body;
 
-  let messageLimits = await MessageLimit.findOne({ user: userId });
-  if (!messageLimits) {
-    messageLimits = await messageLimitService.createDefaultMessageLimits({
+  let messageLimit = await MessageLimit.findOne({ user: userId });
+  if (!messageLimit) {
+    messageLimit = await messageLimitService.createDefaultMessageLimits({
       user: userId,
     });
   }
 
   const hasMessageLimit = await messageLimitService.checkHasMessageLimit({
     user: userId,
-    messageLimits,
-    type,
+    messageLimit,
   });
   if (!hasMessageLimit) throw new BadRequestError("Not enough message limit");
 
-  await messageService.createUserMessage({
+  const createdUserMessage = await messageService.createUserMessage({
     content,
-    type,
+    type: messageType,
     user: userId,
-  });
-
-  await messageLimitService.reduceMessageLimit({
-    user: userId,
-    type,
-    messageLimits,
   });
 
   const answer = await aiService.askQuestion({
-    prompt: getPromptByMessageType(type),
+    prompt: getGeneralMessagePrompt(),
     question: content,
+    functions: getGeneralMessagePromptFunctions(),
   });
-  const createdMessage = await messageService.createAiMessage({
-    type,
+
+  const totalPromptUsage = answer.usage.total_tokens;
+  await messageLimitService.reduceMessageLimit({
+    user: userId,
+    messageLimit,
+    totalPromptUsage,
+  });
+
+  const functionCall = answer.choices[0].message?.function_call;
+  if (!!functionCall) {
+    await MessageLog.create({
+      user: userId,
+      receivedMessage: createdUserMessage._id,
+      logs: {
+        openai: answer,
+      },
+    });
+
+    return res.success({
+      status: 201,
+      functionCall,
+      totalPromptUsage,
+    });
+  }
+
+  const createdAiMessage = await messageService.createAiMessage({
+    type: messageType,
     content: answer.choices[0].message.content,
     user: userId,
   });
 
   await MessageLog.create({
     user: userId,
-    message: createdMessage._id,
+    receivedMessage: createdUserMessage._id,
+    outcomeMessage: createdAiMessage._id,
     logs: {
       openai: answer,
     },
@@ -68,7 +83,8 @@ exports.store = async (req, res, next) => {
 
   res.success({
     status: 201,
-    message: createdMessage,
+    message: createdAiMessage,
+    totalPromptUsage,
   });
 };
 

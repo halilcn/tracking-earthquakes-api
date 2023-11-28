@@ -5,19 +5,10 @@ const MESSAGE_TYPES = {
   earthquake: "earthquake",
 };
 
-const DEFAULT_MESSAGE_LIMITS = {
-  [MESSAGE_TYPES.general]: 5,
-  [MESSAGE_TYPES.earthquake]: 2,
-};
-
-const mappingLimitTypesFromTypes = {
-  [MESSAGE_TYPES.general]: "generalMessageLimit",
-  [MESSAGE_TYPES.earthquake]: "earthquakeMessageLimit",
-};
+const DEFAULT_MESSAGE_TOKEN_LIMIT = 1000;
 
 module.exports = {
   MESSAGE_OWNERS,
   MESSAGE_TYPES,
-  DEFAULT_MESSAGE_LIMITS,
-  mappingLimitTypesFromTypes,
+  DEFAULT_MESSAGE_TOKEN_LIMIT,
 };

@@ -2,14 +2,14 @@ const express = require("express");
 const errorCatcher = require("../../errorCatcher");
 const messageController = require("../../controllers/messageController");
 const validator = require("../../validator");
-const messageValidation = require("../../validations/messageValidation.js");
+const aiMessageValidation = require("../../validations/aiMessageValidation.js");
 
 const router = express.Router();
 
 router.post(
-  "/",
-  validator(messageValidation),
-  errorCatcher(messageController.store)
+  "/ai",
+  validator(aiMessageValidation),
+  errorCatcher(messageController.storeAiMessage)
 );
 
 router.get("/", errorCatcher(messageController.index));

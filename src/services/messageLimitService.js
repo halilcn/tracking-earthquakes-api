@@ -1,38 +1,35 @@
 const { BadRequestError } = require("openai");
-const { mappingLimitTypesFromTypes } = require("../constants");
 const MessageLimit = require("../models/messageLimit");
-
-const getMappingLimitFieldFromMessageType = (type) =>
-  mappingLimitTypesFromTypes[type];
+const { DEFAULT_MESSAGE_TOKEN_LIMIT } = require("../constants");
 
 exports.checkHasMessageLimit = async (payload) => {
-  const { messageLimits, user, type } = payload;
+  const { messageLimit, user } = payload;
 
-  const currentMessageLimits =
-    messageLimits || (await MessageLimit.findOne({ user }));
-  if (!currentMessageLimits) return;
+  const currentMessageLimit =
+    messageLimit || (await MessageLimit.findOne({ user }));
+  if (!currentMessageLimit) return;
 
-  return currentMessageLimits[getMappingLimitFieldFromMessageType(type)] > 0;
+  return currentMessageLimit.token > 0;
 };
 
 exports.reduceMessageLimit = async (payload) => {
-  const { messageLimits, user, type } = payload;
+  const { messageLimit, user, totalPromptUsage } = payload;
 
-  const currentMessageLimits =
-    messageLimits || (await MessageLimit.findOne({ user }));
-  if (!currentMessageLimits)
+  const currentMessageLimit =
+    messageLimit || (await MessageLimit.findOne({ user }));
+  if (!currentMessageLimit)
     throw new BadRequestError("There are not any message limits");
 
-  const messageLimitField = getMappingLimitFieldFromMessageType(type);
-  const currentValue = currentMessageLimits[messageLimitField];
+  const currentToken =
+    Number(currentMessageLimit.token) - Number(totalPromptUsage);
 
-  return await MessageLimit.findOneAndUpdate(
-    { user },
-    { [messageLimitField]: currentValue - 1 }
-  );
+  return await MessageLimit.findOneAndUpdate({ user }, { token: currentToken });
 };
 
 exports.createDefaultMessageLimits = async (payload) => {
   const { user } = payload;
-  return await MessageLimit.create({ user });
+  return await MessageLimit.create({
+    user,
+    token: DEFAULT_MESSAGE_TOKEN_LIMIT,
+  });
 };
