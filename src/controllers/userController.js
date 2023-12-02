@@ -5,6 +5,8 @@ const { BadRequestError } = require("../errors");
 
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const MessageLimit = require("../models/messageLimit");
+const messageLimitService = require("../services/messageLimitService");
 
 const handleGoogleAuth = async (credential) => {
   try {
@@ -47,6 +49,13 @@ exports.auth = async (req, res, next) => {
 
   const user = await handleGoogleAuth(credential);
   const { _id, email, name, photo, token } = user;
+
+  const hasMessageLimits = await MessageLimit.exists({ user: _id });
+  if (!hasMessageLimits) {
+    await messageLimitService.createDefaultMessageLimits({
+      user: _id,
+    });
+  }
 
   res.success({
     status: StatusCodes.CREATED,

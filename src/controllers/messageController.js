@@ -3,7 +3,6 @@ const Message = require("../models/message");
 const MessageLog = require("../models/messageLog");
 const messageService = require("../services/messageService");
 const messageLimitService = require("../services/messageLimitService");
-const MessageLimit = require("../models/messageLimit");
 const aiService = require("../services/aiService");
 const { MESSAGE_TYPES } = require("../constants");
 const {
@@ -17,16 +16,8 @@ exports.storeAiMessage = async (req, res, next) => {
   const messageType = MESSAGE_TYPES.general;
   const { content } = req.body;
 
-  let messageLimit = await MessageLimit.findOne({ user: userId });
-  if (!messageLimit) {
-    messageLimit = await messageLimitService.createDefaultMessageLimits({
-      user: userId,
-    });
-  }
-
   const hasMessageLimit = await messageLimitService.checkHasMessageLimit({
     user: userId,
-    messageLimit,
   });
   if (!hasMessageLimit) throw new BadRequestError("Not enough message limit");
 
