@@ -21,11 +21,16 @@ exports.storeAiMessage = async (req, res, next) => {
   });
   if (!hasMessageLimit) throw new BadRequestError("Not enough message limit");
 
-  const createdUserMessage = await messageService.createUserMessage({
-    content,
-    type: messageType,
-    user: userId,
-  });
+  let createdUserMessage;
+  try {
+    createdUserMessage = await messageService.createUserMessage({
+      content,
+      type: messageType,
+      user: userId,
+    });
+  } catch (err) {
+    throw new BadRequestError("An error occurred while creating user message");
+  }
 
   const answer = await aiService.askQuestion({
     prompt: getGeneralMessagePrompt(),
@@ -36,7 +41,6 @@ exports.storeAiMessage = async (req, res, next) => {
   const totalPromptUsage = answer.usage.total_tokens;
   await messageLimitService.reduceMessageLimit({
     user: userId,
-    messageLimit,
     totalPromptUsage,
   });
 
@@ -75,6 +79,7 @@ exports.storeAiMessage = async (req, res, next) => {
   res.success({
     status: 201,
     message: createdAiMessage,
+    createdUserMessage,
     totalPromptUsage,
   });
 };
