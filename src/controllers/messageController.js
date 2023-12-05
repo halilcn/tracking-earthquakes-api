@@ -58,6 +58,7 @@ exports.storeAiMessage = async (req, res, next) => {
     return res.success({
       status: 201,
       functionCall,
+      createdUserMessage,
       totalPromptUsage,
     });
   }
@@ -95,7 +96,7 @@ exports.storeAiEarthquake = async (req, res, next) => {
   if (!hasMessageLimit) throw new BadRequestError("Not enough message limit");
 
   const userMessage = await Message.findById(userMessageId);
-  if (String(userMessage.user) !== String(userId))
+  if (String(userMessage?.user) !== String(userId))
     throw new BadRequestError("The owner of the message is different");
 
   const answer = await aiService.askQuestion({
