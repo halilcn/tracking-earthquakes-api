@@ -4,7 +4,8 @@ const functionNames = {
 
 exports.getGeneralMessagePrompt = () =>
   "you are a earthquake helpful system. If a user wants to ask a questions about past earthquake and if they provide you a earthquake date, please us functions";
-exports.getEarthquakeMessagePrompt = () => "you are a helpful system";
+exports.getEarthquakeMessagePrompt = (earthquakes) =>
+  `you have earthquake list as an array. Please ask the question according to the list. Earthquakes:${earthquakes}`;
 
 exports.getGeneralMessagePromptFunctions = () => [
   {

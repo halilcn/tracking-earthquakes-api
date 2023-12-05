@@ -8,6 +8,7 @@ const { MESSAGE_TYPES } = require("../constants");
 const {
   getGeneralMessagePrompt,
   getGeneralMessagePromptFunctions,
+  getEarthquakeMessagePrompt,
 } = require("../utils/prompts");
 
 // TODO: need transaction
@@ -80,6 +81,51 @@ exports.storeAiMessage = async (req, res, next) => {
     status: 201,
     message: createdAiMessage,
     createdUserMessage,
+    totalPromptUsage,
+  });
+};
+
+exports.storeAiEarthquake = async (req, res, next) => {
+  const userId = String(req.user._id);
+  const { userMessageId, earthquakes } = req.body;
+
+  const hasMessageLimit = await messageLimitService.checkHasMessageLimit({
+    user: userId,
+  });
+  if (!hasMessageLimit) throw new BadRequestError("Not enough message limit");
+
+  const userMessage = await Message.findById(userMessageId);
+  if (String(userMessage.user) !== String(userId))
+    throw new BadRequestError("The owner of the message is different");
+
+  const answer = await aiService.askQuestion({
+    prompt: getEarthquakeMessagePrompt(earthquakes),
+    question: userMessage.content,
+  });
+
+  const totalPromptUsage = answer.usage.total_tokens;
+  await messageLimitService.reduceMessageLimit({
+    user: userId,
+    totalPromptUsage,
+  });
+
+  const createdAiMessage = await messageService.createAiMessage({
+    type: MESSAGE_TYPES.earthquake,
+    content: answer.choices[0].message.content,
+    user: userId,
+  });
+
+  await MessageLog.create({
+    user: userId,
+    outcomeMessage: createdAiMessage._id,
+    logs: {
+      openai: answer,
+    },
+  });
+
+  res.success({
+    status: 201,
+    message: createdAiMessage,
     totalPromptUsage,
   });
 };
