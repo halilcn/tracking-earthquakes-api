@@ -89,6 +89,7 @@ exports.storeAiMessage = async (req, res, next) => {
 exports.storeAiEarthquake = async (req, res, next) => {
   const userId = String(req.user._id);
   const { userMessageId, earthquakes } = req.body;
+  const normalizedEarthquakes = JSON.stringify(earthquakes);
 
   const hasMessageLimit = await messageLimitService.checkHasMessageLimit({
     user: userId,
@@ -100,7 +101,7 @@ exports.storeAiEarthquake = async (req, res, next) => {
     throw new BadRequestError("The owner of the message is different");
 
   const answer = await aiService.askQuestion({
-    prompt: getEarthquakeMessagePrompt(earthquakes),
+    prompt: getEarthquakeMessagePrompt(normalizedEarthquakes),
     question: userMessage.content,
   });
 
