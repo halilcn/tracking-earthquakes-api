@@ -10,6 +10,22 @@ const {
   getGeneralMessagePromptFunctions,
   getEarthquakeMessagePrompt,
 } = require("../utils/prompts");
+const dayjs = require("dayjs");
+
+const normalizationEarthquakes = (earthquakes) =>
+  earthquakes
+    .map((earthquake) => {
+      const { mag, coordinates, date: _date, location: _location } = earthquake;
+
+      const [long, lat] = coordinates.map((coordinate) =>
+        coordinate.toFixed(2)
+      );
+      const date = dayjs(_date).locale("en").format("DD MMMM YYYY HH:mm");
+      const location = _location.toLocaleLowerCase("en-US");
+
+      return `long:${long},lat:${lat},date:${date},mag:${mag},location:${location}//`;
+    })
+    .join("");
 
 // TODO: need transaction
 exports.storeAiMessage = async (req, res, next) => {
@@ -89,7 +105,7 @@ exports.storeAiMessage = async (req, res, next) => {
 exports.storeAiEarthquake = async (req, res, next) => {
   const userId = String(req.user._id);
   const { userMessageId, earthquakes } = req.body;
-  const normalizedEarthquakes = JSON.stringify(earthquakes);
+  const normalizedEarthquakes = normalizationEarthquakes(earthquakes);
 
   const hasMessageLimit = await messageLimitService.checkHasMessageLimit({
     user: userId,
@@ -103,6 +119,7 @@ exports.storeAiEarthquake = async (req, res, next) => {
   const answer = await aiService.askQuestion({
     prompt: getEarthquakeMessagePrompt(normalizedEarthquakes),
     question: userMessage.content,
+    model: "gpt-3.5-turbo-1106",
   });
 
   const totalPromptUsage = answer.usage.total_tokens;

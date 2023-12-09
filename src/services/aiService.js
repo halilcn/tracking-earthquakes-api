@@ -21,6 +21,11 @@ exports.askQuestion = async (payload) => {
 
     return answer;
   } catch (err) {
+    if (err?.error?.code === "context_length_exceeded") {
+      throw new BadRequestError(
+        "Context length exceeded, the message length is too long"
+      );
+    }
     throw new BadRequestError("An error related to openai occurred");
   }
 };
