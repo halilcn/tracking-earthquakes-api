@@ -5,7 +5,7 @@ const MESSAGE_TYPES = {
   earthquake: "earthquake",
 };
 
-const DEFAULT_MESSAGE_TOKEN_LIMIT = 1000;
+const DEFAULT_MESSAGE_TOKEN_LIMIT = 20000;
 
 module.exports = {
   MESSAGE_OWNERS,
